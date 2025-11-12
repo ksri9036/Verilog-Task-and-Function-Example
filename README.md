@@ -30,119 +30,107 @@ A Ripple Counter is a sequential circuit that counts in binary. In a 4-bit rippl
 
 ```verilog
 // 4-bit Ripple Carry Adder using Task
-module ripple_carry_adder_task(
-    input [3:0] A, B,
-    output [3:0] SUM,
-    output COUT
+module RA (
+input [3:0] A, B,
+input Cin,
+output reg [3:0] Sum,
+output reg Cout
 );
-    reg [3:0] sum_temp;
-    reg cout_temp;
-
-    task full_adder;
-        input a, b, cin;
-        output s, cout;
-        begin
-            s = a ^ b ^ cin;
-            cout = (a & b) | (b & cin) | (a & cin);
-        end
-    endtask
-
-
-
-
-
-
-Type the Program
-
-
-
+reg c;          
+integer i;
+task full_adder;
+    input a, b, cin;
+    output s, cout;
+    begin
+        s = a ^ b ^ cin;                  
+        cout = (a & b) | (b & cin) | (a & cin); 
+    end
+endtask
+always @(*) begin
+    c = Cin; 
+    for (i = 0; i < 4; i = i + 1) begin
+        full_adder(A[i], B[i], c, Sum[i], c);
+    end
+    Cout = c; 
+end
 endmodule
 ```
 
 ### **Test bench 4-bit Ripple Carry Adder using Task**
 ```
-module tb_ripple_carry_adder_task;
-    reg [3:0] A, B;
-    wire [3:0] SUM;
-    wire COUT;
+`timescale 1ns/1ps
+module tb_ripple_adder_task;
+reg [3:0] A, B;
+reg Cin;
+wire [3:0] Sum;
+wire Cout;
+RA uut (A, B, Cin, Sum, Cout);
 
-    ripple_carry_adder_task uut (A, B, SUM, COUT);
-
-    initial begin
-
-
-
-
-        $finish;
-    end
+initial begin
+    $display("Time\tA\tB\tCin\t|\tSum\tCout");
+    $monitor("%0t\t%b\t%b\t%b\t|\t%b\t%b", $time, A, B, Cin, Sum, Cout);
+    A = 4'b0000; B = 4'b0000; Cin = 0; #10;
+    A = 4'b0011; B = 4'b0101; Cin = 0; #10; 
+    A = 4'b1111; B = 4'b0001; Cin = 0; #10;  
+    A = 4'b1010; B = 4'b0101; Cin = 1; #10;  
+    A = 4'b0110; B = 4'b0011; Cin = 0; #10; 
+    $finish;
+end
 endmodule
 ```
 ### 4-bit Ripple Carry Adder Simulation Output 
 
------
------
------
------
-------- Paste the output here----------
-
-
-
-
-
-
-
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/0bd296bf-6885-430a-afb9-9cd00076506f" />
 
 
 ### **4-bit Ripple Counter using Function**
 ```
-// 4-bit Ripple Counter using Function
-module ripple_counter_func(
-    input clk, reset,
-    output reg [3:0] count
+module RC (
+    input clk, rst,
+    output reg [3:0] Q
 );
-    function [3:0] increment;
-        input [3:0] val;
+    function [3:0] count;
+        input [3:0] x;
         begin
-            increment = val + 1;
+            count = x + 1;   
         end
     endfunction
-
-
-
-
-
+    always @(posedge clk or posedge rst) begin
+    if (rst)
+        Q <= 4'b0000;     
+    else
+        Q <= count(Q);   
+    end
 endmodule
 ```
 ### **Testbench for 4-bit Ripple Counter using Function**
 ```
-module tb_ripple_counter_func;
-    reg clk, reset;
-    wire [3:0] count;
+`timescale 1ns/1ps    
+module tb_RC_func;
+reg clk, rst;      
+wire [3:0] Q;      
+RC uut (clk,rst,Q);
+always #5 clk = ~clk;
+initial begin
+    $display("Time(ns)\tRST\tQ");
+    $monitor("%0t\t%b\t%b", $time, rst, Q);
+    clk = 0;
+    rst = 1;       
+    #10;
+    rst = 0;        
+    #160;
+    rst = 1;
+    #10;
+    rst = 0;
 
-    ripple_counter_func uut (clk, reset, count);
-
-    initial begin
-        clk = 0;
-        forever #5 clk = ~clk; // Clock with 10ns period
-    end
-
-    initial begin
-     
-    end
+    #50;
+    $finish;    
+end
 endmodule
 ```
 ### 4-bit Ripple Counter Simulation output 
------
------
------
------
-------- Paste the output here----------
 
-
-
-
-
-
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/8fb25390-3b93-4f13-8fcc-82c41a623306" />
 
 ### Result
 
